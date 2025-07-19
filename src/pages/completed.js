@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 export default function Completed() {
   const [completedTasks, setCompletedTasks] = useState([]);
+  // Search query for filtering completed tasks
+  const [search, setSearch] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -30,6 +33,11 @@ export default function Completed() {
       priorityWeight[a.priority ?? 'Low'] - priorityWeight[b.priority ?? 'Low'],
   );
 
+  // Only show completed tasks whose text includes the search query (case-insensitive)
+  const filteredCompleted = sortedCompleted.filter((task) =>
+    task.text.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
@@ -45,15 +53,27 @@ export default function Completed() {
 
         <div>
           <h2 className="text-lg font-semibold mb-3 text-gray-700">
-            Completed ({sortedCompleted.length})
+            Completed ({filteredCompleted.length})
           </h2>
-          {sortedCompleted.length === 0 ? (
+          {/* Search bar */}
+          <Input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="mb-4"
+            placeholder="Search completed tasks..."
+          />
+          {completedTasks.length === 0 ? (
             <p className="text-gray-500 text-center py-4">
               No completed tasks yet.
             </p>
+          ) : filteredCompleted.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">
+              No completed tasks match your search.
+            </p>
           ) : (
             <ul className="space-y-2">
-              {sortedCompleted.map((task) => (
+              {filteredCompleted.map((task) => (
                 <li
                   key={task.id}
                   className="p-3 bg-green-50 rounded-md border-l-4 border-green-500 flex items-center gap-2"
