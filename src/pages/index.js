@@ -127,11 +127,16 @@ export default function Page() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="mb-4"
               placeholder="Search tasks..."
             />
             {tasks.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
                 No tasks yet. Add one above!
+              </p>
+            ) : filteredTasks.length === 0 ? (
+              <p className="text-muted-foreground text-center py-4">
+                No tasks match your search.
               </p>
             ) : (
               <ul className="space-y-2">
