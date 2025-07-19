@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { Card, CardHeader, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,23 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 
 export default function Page() {
-  const [tasks, setTasks] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('tasks');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [tasks, setTasks] = useState([]);
 
-  const [completedTasks, setCompletedTasks] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('completedTasks');
-      return saved ? JSON.parse(saved) : [];
-    }
-    return [];
-  });
+  const [completedTasks, setCompletedTasks] = useState([]);
 
   const [newTask, setNewTask] = useState('');
+  const [priority, setPriority] = useState('Low');
   const router = useRouter();
 
   useEffect(() => {
@@ -34,18 +23,29 @@ export default function Page() {
     if (savedCompleted) setCompletedTasks(JSON.parse(savedCompleted));
   }, []);
 
+  const isInitialTasks = useRef(true);
   useEffect(() => {
+    if (isInitialTasks.current) {
+      isInitialTasks.current = false;
+      return;
+    }
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
+  const isInitialCompleted = useRef(true);
   useEffect(() => {
+    if (isInitialCompleted.current) {
+      isInitialCompleted.current = false;
+      return;
+    }
     localStorage.setItem('completedTasks', JSON.stringify(completedTasks));
   }, [completedTasks]);
 
   const addTask = () => {
     if (newTask.trim()) {
-      setTasks([...tasks, { id: Date.now(), text: newTask.trim() }]);
+      setTasks([...tasks, { id: Date.now(), text: newTask.trim(), priority }]);
       setNewTask('');
+      setPriority('Low');
     }
   };
 
@@ -63,6 +63,23 @@ export default function Page() {
     }
   };
 
+  const priorityStyles = {
+    High: 'bg-red-500 text-white',
+    Medium: 'bg-yellow-500 text-white',
+    Low: 'bg-green-500 text-white',
+  };
+
+  const priorityWeight = {
+    High: 1,
+    Medium: 2,
+    Low: 3,
+  };
+
+  const sortedTasks = [...tasks].sort(
+    (a, b) =>
+      priorityWeight[a.priority ?? 'Low'] - priorityWeight[b.priority ?? 'Low'],
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <Card className="mx-auto w-full max-w-md">
@@ -78,6 +95,15 @@ export default function Page() {
               onKeyDown={handleKeyDown}
               placeholder="Enter a new task..."
             />
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value)}
+              className="border rounded-md px-2 py-1 text-sm focus:outline-none"
+            >
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
             <Button onClick={addTask}>Add</Button>
           </div>
 
@@ -94,19 +120,24 @@ export default function Page() {
               </p>
             ) : (
               <ul className="space-y-2">
-                {tasks.map((task) => (
+                {sortedTasks.map((task) => (
                   <li
                     key={task.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
                   >
                     <span>{task.text}</span>
-                    <Button
-                      onClick={() => completeTask(task.id)}
-                      size="sm"
-                      variant="default"
-                    >
-                      Complete
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Badge className={priorityStyles[task.priority ?? 'Low']}>
+                        {task.priority ?? 'Low'}
+                      </Badge>
+                      <Button
+                        onClick={() => completeTask(task.id)}
+                        size="sm"
+                        variant="default"
+                      >
+                        Complete
+                      </Button>
+                    </div>
                   </li>
                 ))}
               </ul>
