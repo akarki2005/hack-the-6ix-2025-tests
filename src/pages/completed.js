@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { Badge } from '@/components/ui/badge';
 
 export default function Completed() {
   const [completedTasks, setCompletedTasks] = useState([]);
@@ -11,6 +12,23 @@ export default function Completed() {
       setCompletedTasks(JSON.parse(saved));
     }
   }, []);
+
+  const priorityStyles = {
+    High: 'bg-red-500 text-white',
+    Medium: 'bg-yellow-500 text-white',
+    Low: 'bg-green-500 text-white',
+  };
+
+  const priorityWeight = {
+    High: 1,
+    Medium: 2,
+    Low: 3,
+  };
+
+  const sortedCompleted = [...completedTasks].sort(
+    (a, b) =>
+      priorityWeight[a.priority ?? 'Low'] - priorityWeight[b.priority ?? 'Low'],
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
@@ -24,16 +42,28 @@ export default function Completed() {
             Back
           </button>
         </div>
-        
+
         <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-700">Completed ({completedTasks.length})</h2>
-          {completedTasks.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">No completed tasks yet.</p>
+          <h2 className="text-lg font-semibold mb-3 text-gray-700">
+            Completed ({sortedCompleted.length})
+          </h2>
+          {sortedCompleted.length === 0 ? (
+            <p className="text-gray-500 text-center py-4">
+              No completed tasks yet.
+            </p>
           ) : (
             <ul className="space-y-2">
-              {completedTasks.map((task) => (
-                <li key={task.id} className="p-3 bg-green-50 rounded-md border-l-4 border-green-500">
-                  <span className="text-gray-800 line-through">{task.text}</span>
+              {sortedCompleted.map((task) => (
+                <li
+                  key={task.id}
+                  className="p-3 bg-green-50 rounded-md border-l-4 border-green-500 flex items-center gap-2"
+                >
+                  <Badge className={priorityStyles[task.priority ?? 'Low']}>
+                    {task.priority ?? 'Low'}
+                  </Badge>
+                  <span className="text-gray-800 line-through">
+                    {task.text}
+                  </span>
                 </li>
               ))}
             </ul>
