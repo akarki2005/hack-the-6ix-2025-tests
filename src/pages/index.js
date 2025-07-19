@@ -13,6 +13,8 @@ export default function Page() {
 
   const [newTask, setNewTask] = useState('');
   const [priority, setPriority] = useState('Low');
+  // Search query for filtering
+  const [search, setSearch] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -80,6 +82,11 @@ export default function Page() {
       priorityWeight[a.priority ?? 'Low'] - priorityWeight[b.priority ?? 'Low'],
   );
 
+  // Only show tasks whose text includes the search query (case-insensitive)
+  const filteredTasks = sortedTasks.filter((task) =>
+    task.text.toLowerCase().includes(search.toLowerCase()),
+  );
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <Card className="mx-auto w-full max-w-md">
@@ -112,15 +119,23 @@ export default function Page() {
           <div>
             <div className="flex items-center gap-2 mb-4">
               <h2 className="text-lg font-semibold">Incomplete Tasks</h2>
-              <Badge variant="secondary">{tasks.length}</Badge>
+              {/* Show number of tasks matching the current search */}
+              <Badge variant="secondary">{filteredTasks.length}</Badge>
             </div>
+            {/* Search bar */}
+            <Input
+              type="text"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search tasks..."
+            />
             {tasks.length === 0 ? (
               <p className="text-muted-foreground text-center py-4">
                 No tasks yet. Add one above!
               </p>
             ) : (
               <ul className="space-y-2">
-                {sortedTasks.map((task) => (
+                {filteredTasks.map((task) => (
                   <li
                     key={task.id}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-md"
