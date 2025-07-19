@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
 
-export default function Completed() {
+export default function Page() {
   const [completedTasks, setCompletedTasks] = useState([]);
-  // Search query for filtering completed tasks
   const [search, setSearch] = useState('');
   const router = useRouter();
 
@@ -33,42 +35,42 @@ export default function Completed() {
       priorityWeight[a.priority ?? 'Low'] - priorityWeight[b.priority ?? 'Low'],
   );
 
-  // Only show completed tasks whose text includes the search query (case-insensitive)
   const filteredCompleted = sortedCompleted.filter((task) =>
     task.text.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Completed Tasks</h1>
-          <button
-            onClick={() => router.push('/')}
-            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Back
-          </button>
-        </div>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <Card className="mx-auto w-full max-w-md">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold">Completed Tasks</h1>
+            <Button onClick={() => router.push('/')} variant="outline">
+              Back
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold">Completed</h2>
+            <Badge variant="secondary">{filteredCompleted.length}</Badge>
+          </div>
 
-        <div>
-          <h2 className="text-lg font-semibold mb-3 text-gray-700">
-            Completed ({filteredCompleted.length})
-          </h2>
-          {/* Search bar */}
           <Input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="mb-4"
             placeholder="Search completed tasks..."
           />
+
+          <Separator />
+
           {completedTasks.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-muted-foreground text-center py-4">
               No completed tasks yet.
             </p>
           ) : filteredCompleted.length === 0 ? (
-            <p className="text-gray-500 text-center py-4">
+            <p className="text-muted-foreground text-center py-4">
               No completed tasks match your search.
             </p>
           ) : (
@@ -76,20 +78,18 @@ export default function Completed() {
               {filteredCompleted.map((task) => (
                 <li
                   key={task.id}
-                  className="p-3 bg-green-50 rounded-md border-l-4 border-green-500 flex items-center gap-2"
+                  className="flex items-center gap-2 p-3 bg-green-50 rounded-md border-l-4 border-green-500"
                 >
                   <Badge className={priorityStyles[task.priority ?? 'Low']}>
                     {task.priority ?? 'Low'}
                   </Badge>
-                  <span className="text-gray-800 line-through">
-                    {task.text}
-                  </span>
+                  <span className="line-through">{task.text}</span>
                 </li>
               ))}
             </ul>
           )}
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
